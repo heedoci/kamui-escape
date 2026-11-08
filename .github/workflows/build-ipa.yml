@@ -1,0 +1,45 @@
+name: Build fixed KAMUI IPA
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "build.sh"
+      - ".github/workflows/build-ipa.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build unsigned IPA for ESign
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Compile using the iOS SDK
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild -version
+          SDK="$(xcrun --sdk iphoneos --show-sdk-path)"
+          echo "Using iOS SDK: $SDK"
+
+          # build.sh targets Linux/theos with lld; use Xcode's Apple linker here.
+          sed -i '' '/-fuse-ld=lld/d' build.sh
+          SDK="$SDK" bash build.sh
+
+          test -s "build/KAMUI-2.3.1.ipa"
+          mv "build/KAMUI-2.3.1.ipa" "build/KAMUI-2.3.1-fixed-unsigned.ipa"
+
+      - name: Upload unsigned IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: KAMUI-2.3.1-fixed-unsigned
+          path: build/KAMUI-2.3.1-fixed-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 30
