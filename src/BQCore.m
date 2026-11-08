@@ -132,12 +132,12 @@ dispatch_queue_t BQWorkQueue(void) {
 }
 
 // --------------------------------------------------------------- MCM API ---
-typedef void *xpc_object_t;
-typedef xpc_object_t (*xpc_string_create_fn)(const char *);
-typedef void (*xpc_release_fn)(xpc_object_t);
+typedef void *bq_xpc_object_t;
+typedef bq_xpc_object_t (*xpc_string_create_fn)(const char *);
+typedef void (*xpc_release_fn)(bq_xpc_object_t);
 typedef void *(*fn_create)(void);
 typedef void (*fn_set_u64)(void *, uint64_t);
-typedef void (*fn_set_obj)(void *, xpc_object_t);
+typedef void (*fn_set_obj)(void *, bq_xpc_object_t);
 typedef void (*fn_set_cstr)(void *, const char *);
 typedef void *(*fn_get_one)(void *);
 typedef char *(*fn_copy_str)(void *);
@@ -351,7 +351,7 @@ static int64_t bq_query_escape(uint64_t cls, NSString *ident, BOOL group,
     void *q = g.create();
     if (!q) return -2;
     g.set_class(q, cls);
-    xpc_object_t x = p_xpc_string_create ? p_xpc_string_create(ident.UTF8String) : NULL;
+    bq_xpc_object_t x = p_xpc_string_create ? p_xpc_string_create(ident.UTF8String) : NULL;
     if (group && g.set_group_ids) g.set_group_ids(q, x);
     else if (g.set_ids) g.set_ids(q, x);
     else if (g.set_group_ids) g.set_group_ids(q, x);
@@ -603,7 +603,7 @@ static int bq_probe_base(NSString *base, uint64_t cls, NSString *ident, NSString
     void *q = g.create();
     if (!q) { bq_restore_path(caches, bak); return -3; }
     g.set_class(q, cls);
-    xpc_object_t x = p_xpc_string_create ? p_xpc_string_create(ident.UTF8String) : NULL;
+    bq_xpc_object_t x = p_xpc_string_create ? p_xpc_string_create(ident.UTF8String) : NULL;
     if (cls == 7 && g.set_group_ids) g.set_group_ids(q, x);
     else if (g.set_ids) g.set_ids(q, x);
     else if (g.set_group_ids) g.set_group_ids(q, x);
@@ -663,7 +663,7 @@ static char *bq_query_part_path(uint64_t cls, NSString *ident, uint64_t part, ui
     void *q = g.create();
     if (!q) return NULL;
     g.set_class(q, cls);
-    xpc_object_t x = p_xpc_string_create ? p_xpc_string_create(ident.UTF8String) : NULL;
+    bq_xpc_object_t x = p_xpc_string_create ? p_xpc_string_create(ident.UTF8String) : NULL;
     if (cls == 7 && g.set_group_ids) g.set_group_ids(q, x);
     else if (g.set_ids) g.set_ids(q, x);
     if (g.set_part) g.set_part(q, part);
@@ -715,7 +715,7 @@ NSDictionary *BQProbeClass2Parts(NSString *target) {
             void *q = g.create();
             if (q) {
                 g.set_class(q, 2);
-                xpc_object_t x = p_xpc_string_create ? p_xpc_string_create(bundle.UTF8String) : NULL;
+                bq_xpc_object_t x = p_xpc_string_create ? p_xpc_string_create(bundle.UTF8String) : NULL;
                 if (g.set_ids) g.set_ids(q, x);
                 if (g.set_part) g.set_part(q, p);
                 if (g.set_flags) g.set_flags(q, 0x8100000000ULL);
